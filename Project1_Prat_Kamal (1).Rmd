@@ -1,0 +1,79 @@
+---
+title: "Project 1 - SDS 313"
+author: "Pratishrut Kamal"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: united
+    code_folding: hide
+    css: style.css
+---
+## 1. Dataset Overview
+
+This dataset was compiled by FiveThirtyEight staffers who analyzed Super Bowl advertisements from 2000 to 2020. They looked at the 10 brands with the most Super Bowl ads during that period and found the corresponding YouTube videos for those ads. Then, they evaluated each ad based on 7 defining characteristics, such as whether the ad used humor, animals, or sex to sell the product.
+The outcome variable of interest in this analysis is the defining characteristic of whether the ad used sex to sell the product. The predictor variables I am investigating are the like count of the commercial, the comment count of the commercial, and whether the commercial used sex to sell its product and my outcome variable is the amount of views the commercial got.
+
+
+![1 in 4 people watch the Super Bowl for the ads](4325.jpeg)
+
+```{r hide = TRUE}
+superbowl <- read.csv("Project1_SuperBowlAds.csv")
+```
+
+## 2. Outcome Variable Analysis
+
+```{r warning = FALSE, message = FALSE, results = 'hide'}
+library(ggplot2)
+ggplot(superbowl, aes(x = view_count)) + geom_histogram(col = "blue", fill = "blue") + labs(title = "Distribution of views of commercials", x = "Views on Commercials", y = "Frequency")
+```
+
+The distribution of views of commercials has a very heavy right skew and has a high concentration in the lower end side of views, the median of the views commercials got during the Super Bowl is `r median(superbowl$view_count, na.rm = TRUE)` and the Interquartile Range of the amount of views commercials got during the Super Bowl is `r IQR(superbowl$view_count, na.rm = TRUE)`.
+
+## 3. Multivariate Analysis
+```{r}
+ggplot(superbowl, aes(x = view_count, y = like_count, color = use_sex)) + geom_point() + labs(title = "Commercial Views vs Likes on a Commercial grouped by usage of sex to sell a product in the commercial", x = "Commercial Views", y = "Commercial Likes")
+```
+
+## 4. Predictor Variable Analysis
+```{r warning = FALSE, message = FALSE, results = 'hide'}
+ggplot(superbowl, aes(y = view_count, x = like_count)) + geom_point() + labs(title = "Commercial Views vs. Likes on a Commercial", x = "Commercial Views", y = "Commercial Likes")
+ggplot(superbowl, aes(y = view_count, x = comment_count)) + geom_point() + labs(title = "Commercial Views vs. Comments on a Commercial", x = "Commercial Views", y = "Commercial Likes")
+superbowl$use_sex = as.factor(superbowl$use_sex)
+ggplot(superbowl, aes(y = view_count, x = use_sex)) + geom_point() + labs(title = "Commercial Views vs. Usage of sex in a commercial", x = "Commercial Views", y = "Commercial Likes")
+
+superbowl = na.omit(superbowl)
+```
+
+We will create a new variable for the like to dislike ratio and check its correlation to the amount of views the commercial gets
+
+```{r}
+superbowl$likedislikeratio = superbowl$like_count / superbowl$dislike_count
+superbowl <- na.omit(superbowl)
+
+stat <- superbowl[superbowl$likedislikeratio != Inf, ]
+ggplot(stat, aes(x = likedislikeratio, y = view_count)) + geom_point() + labs(title = "Commercial Views vs. Like to Dislike Ratio", x = "Like to Dislike Ratio", y = "Commercial Views")
+```
+The correlation between our new variable, like to dislike ratio and our outcome variable, the amount views the commercial gets is `r round(cor(stat$likedislikeratio,  stat$view_count), 2)`
+
+The correlation coefficient between the amount of views and the amount of likes a commercial got is `r round(cor(superbowl$view_count, superbowl$like_count), 2)` indicating a very strong correlation between the amount of likes that a commercial got and the amount views that a commercial got. Surprisingly, the correlation coefficient between the amount of views and the amount of comments a commercial got was only `r round(cor(superbowl$view_count, superbowl$comment_count), 2)` indicating a slight correlation between the amount of views and the amount of comments that a Super Bowl commercial got. Finally, the amount of views and the usage of sex only had a correlation of `r round(cor(superbowl$view_count, superbowl$use_sex), 2)` indicating little to no correlation between the usage of sex to sell a product in a commercial and the amount of views a commercial got.
+
+
+In conclusion, our analysis yielded significant insights regarding the predictors influencing the outcome variable. By examining various bivariate and multivariate relationships, we found that the like and comments that a commercial gets significantly impacts the amount of views a commercial gets. We also took a look at a multivariate interaction between the usage of sex to sell a product in commercials and found that there was no significant impact on the amount of views or likes that the commercial got because of the usage of sex. 
+
+I did these 5 for question 4:
+
+**Use 2 or more in-line codes**: I used inline codes for showing the correlation coefficients of each scatter plot that was made 
+
+**Include a floating table of contents**: A floating table of contents was added at the beginning of the document to allow for easy navigation between sections. The sections were named: Introduction, Bivariate Analysis, Multivariate Analysis, and Conclusion.
+
+**Create at least one new variable**: A new variable likedislikeratio was created by taking the ratio between the amount of likes and dislikes a superbowl commercial got
+
+**Multivariate plot with interpretation**: At the end of the bivariate analysis section, I included a multivariate plot showcasing the relationship between the the amount of views a commercial got and the amount of likes a commercial got and grouped it by whether sex was used to sell the product in the commercial.
+
+**Change the default font style, size, and/or color**: I added a css file with a font imported from the google API 
+
+
+## References
+
+- Best, Ryan. (2021). "According To Super Bowl Ads, Americans Love America, Animals And Sex". FiveThirtyEight
